@@ -22,7 +22,7 @@ function Player(_x, _y)
 
 	function Player:moveUp()
 		if self.standing then
-			if not self.locked and getTileY(self.y) > 0 then
+			if not self.locked and getTileY(self.y) > 0 and isFree(getTileX(self.x), getTileY(self.y)-1) then
 				self.locked = "up"
 				self.rememberedPos = self.y - TILE_HEIGHT
 			end
@@ -31,7 +31,7 @@ function Player(_x, _y)
 
 	function Player:moveDown()
 		if self.standing then
-			if not self.locked and getTileY(self.y) < WORLD_HEIGHT-1 then
+			if not self.locked and getTileY(self.y) < WORLD_HEIGHT-1 and isFree(getTileX(self.x), getTileY(self.y)+1) then
 				self.locked = "down"
 				self.rememberedPos = self.y + TILE_HEIGHT
 			end
@@ -40,7 +40,7 @@ function Player(_x, _y)
 
 	function Player:moveLeft()
 		if self.standing then
-			if not self.locked and getTileX(self.x) > 0 then
+			if not self.locked and getTileX(self.x) > 0 and isFree(getTileX(self.x)-1, getTileY(self.y)) then
 				self.locked = "left"
 				self.rememberedPos = self.x - TILE_WIDTH
 			end
@@ -49,7 +49,7 @@ function Player(_x, _y)
 
 	function Player:moveRight()
 		if self.standing then
-			if not self.locked and getTileX(self.x) < WORLD_WIDTH-1 then
+			if not self.locked and getTileX(self.x) < WORLD_WIDTH-1 and isFree(getTileX(self.x)+1, getTileY(self.y)) then
 				self.locked = "right"
 				self.rememberedPos = self.x + TILE_WIDTH
 			end

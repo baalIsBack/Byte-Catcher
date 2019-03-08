@@ -3,7 +3,7 @@ function Dummy_Walker(_x, _y)
 		x = (_x)*TILE_WIDTH - TILE_WIDTH/2,
 		y = (_y)*TILE_HEIGHT - TILE_HEIGHT/2,
 		locked = false,
-
+		solid = true,
 		speed = 0.7,
 		rememberedPos = 0,
 		standing = true,
@@ -13,15 +13,15 @@ function Dummy_Walker(_x, _y)
 
 
 	function Dummy_Walker:draw(x, y, w, h)
-		love.graphics.setColor(1, 0, 0)
+		love.graphics.setColor(1, 0, 0, 0.5)
 		Dummy_Walker_x = getTileX(self.x) + 1-- 1
 		Dummy_Walker_y = getTileY(self.y) + 1-- 1
-		love.graphics.circle("fill", self.x , self.y , 5, 100)
+		love.graphics.circle("fill", self.x , self.y , 30, 100)
 	end
 
 	function Dummy_Walker:moveUp()
 		if self.standing then
-			if not self.locked and getTileY(self.y) > 0 then
+			if not self.locked and getTileY(self.y) > 0 and isFree(getTileX(self.x), getTileY(self.y)-1) then
 				self.locked = "up"
 				self.rememberedPos = self.y - TILE_HEIGHT
 			end
@@ -30,7 +30,7 @@ function Dummy_Walker(_x, _y)
 
 	function Dummy_Walker:moveDown()
 		if self.standing then
-			if not self.locked and getTileY(self.y) < WORLD_HEIGHT-1 then
+			if not self.locked and getTileY(self.y) < WORLD_HEIGHT-1 and isFree(getTileX(self.x), getTileY(self.y)+1) then
 				self.locked = "down"
 				self.rememberedPos = self.y + TILE_HEIGHT
 			end
@@ -39,7 +39,7 @@ function Dummy_Walker(_x, _y)
 
 	function Dummy_Walker:moveLeft()
 		if self.standing then
-			if not self.locked and getTileX(self.x) > 0 then
+			if not self.locked and getTileX(self.x) > 0 and isFree(getTileX(self.x)-1, getTileY(self.y)) then
 				self.locked = "left"
 				self.rememberedPos = self.x - TILE_WIDTH
 			end
@@ -48,7 +48,7 @@ function Dummy_Walker(_x, _y)
 
 	function Dummy_Walker:moveRight()
 		if self.standing then
-			if not self.locked and getTileX(self.x) < WORLD_WIDTH-1 then
+			if not self.locked and getTileX(self.x) < WORLD_WIDTH-1 and isFree(getTileX(self.x)+1, getTileY(self.y)) then
 				self.locked = "right"
 				self.rememberedPos = self.x + TILE_WIDTH
 			end

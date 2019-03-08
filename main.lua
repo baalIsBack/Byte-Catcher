@@ -74,6 +74,15 @@ WORLD_HEIGHT = 100
 TILE_WIDTH = 80
 TILE_HEIGHT = 80
 
+function isFree(x, y)
+	for i=#world[x][y],1,-1 do
+		if world[x][y][i].solid then
+			return false
+		end
+	end
+	return true
+end
+
 function love.load()
 	math.randomseed(os.time())
 
@@ -81,13 +90,14 @@ function love.load()
 	for x = 0, WORLD_WIDTH-1, 1 do
 		world[x] = {}
 		for y = 0, WORLD_HEIGHT-1, 1 do
-			if (x + y) % 2 == 0 then
-				world[x][y] = {Dummy(),}
-			else
-				world[x][y] = {}--nil
-				if math.random(1, 50) == 1 then
-					Dummy_Walker(x, y)
-				end
+			world[x][y] = {}--nil
+			random = math.random(1, 50)
+			if random == 1 then
+				Dummy_Walker(x, y)
+			end
+			if random >= 2 and random < 15 then
+				local dummy = Dummy(x, y)
+				dummy.solid = true
 			end
 		end
 	end
@@ -97,13 +107,26 @@ function love.load()
 	--camera = player
 end
 
+function getMouseTileX()
+	return getTileX(love.mouse.getX() -(-camera.x + love.graphics.getWidth()/2))
+end
+
+function getMouseTileY()
+	return getTileY(love.mouse.getY() -(-camera.y + love.graphics.getHeight()/2))
+end
+
+function tileIsLegal(x, y)
+	print(x, WORLD_WIDTH-1)
+	return x >= 0 and x < WORLD_WIDTH-1 and y >= 0 and y < WORLD_HEIGHT-1
+end
+
 
 function love.draw()
 	love.graphics.setBackgroundColor(100/255, 100/255, 100/255)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
 
-
+	
 	
 
 
@@ -153,7 +176,7 @@ function love.update(dt)
 				for i=#world[x][y],1,-1 do -- i starts at the end, and goes "down"
 					local currentObject = world[x][y][i]
 					currentObject:update()--(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
-					
+						
 					table.remove(world[x][y], i)
 					if not currentObject.dead then
 						if currentObject.x and currentObject.y then
@@ -170,6 +193,16 @@ function love.update(dt)
 		end	
 	end
 	
+	local _x = getMouseTileX()
+	local _y = getMouseTileY()
+	print(tileIsLegal(_x, _y))
+	if love.mouse.isDown(1) and tileIsLegal(_x, _y) then
+		
+		world[_x][_y] = {}
+		if _x == getTileX(player.x) and _y == getTileY(player.y) then
+			world[_x][_y] = {player,}
+		end
+	end
 
 	if love.keyboard.isDown('escape') then
 		love.event.quit()
