@@ -1,26 +1,25 @@
-function Player(_x, _y)
-	local Player = {
+function Dummy_Walker(_x, _y)
+	local Dummy_Walker = {
 		x = (_x)*TILE_WIDTH - TILE_WIDTH/2,
 		y = (_y)*TILE_HEIGHT - TILE_HEIGHT/2,
 		locked = false,
 
-		speed = 2,
+		speed = 0.7,
 		rememberedPos = 0,
 		standing = true,
 		locked = false,
 	}
-	table.insert(world[_x][_y], Player)--hook into world
-	camera = Player
+	table.insert(world[_x][_y], Dummy_Walker)--hook into world
 
 
-	function Player:draw(x, y, w, h)
-		love.graphics.setColor(1, 1, 1)
-		player_x = getTileX(self.x) + 1-- 1
-		player_y = getTileY(self.y) + 1-- 1
+	function Dummy_Walker:draw(x, y, w, h)
+		love.graphics.setColor(1, 0, 0)
+		Dummy_Walker_x = getTileX(self.x) + 1-- 1
+		Dummy_Walker_y = getTileY(self.y) + 1-- 1
 		love.graphics.circle("fill", self.x , self.y , 5, 100)
 	end
 
-	function Player:moveUp()
+	function Dummy_Walker:moveUp()
 		if self.standing then
 			if not self.locked and getTileY(self.y) > 0 then
 				self.locked = "up"
@@ -29,7 +28,7 @@ function Player(_x, _y)
 		end
 	end
 
-	function Player:moveDown()
+	function Dummy_Walker:moveDown()
 		if self.standing then
 			if not self.locked and getTileY(self.y) < WORLD_HEIGHT-1 then
 				self.locked = "down"
@@ -38,7 +37,7 @@ function Player(_x, _y)
 		end
 	end
 
-	function Player:moveLeft()
+	function Dummy_Walker:moveLeft()
 		if self.standing then
 			if not self.locked and getTileX(self.x) > 0 then
 				self.locked = "left"
@@ -47,7 +46,7 @@ function Player(_x, _y)
 		end
 	end
 
-	function Player:moveRight()
+	function Dummy_Walker:moveRight()
 		if self.standing then
 			if not self.locked and getTileX(self.x) < WORLD_WIDTH-1 then
 				self.locked = "right"
@@ -56,7 +55,7 @@ function Player(_x, _y)
 		end
 	end
 
-	function Player:move()
+	function Dummy_Walker:move()
 		if self.locked == "up" then
 			self.standing = false
 			self.y = self.y - (self.speed/(TICK_RATE))/TILE_HEIGHT
@@ -92,33 +91,25 @@ function Player(_x, _y)
 		end
 	end
 
-	function Player:update()
-		local dir = 0
-		if love.keyboard.isDown("w") then
-			self:moveUp()
-			dir = dir + 1
-		end
-		if love.keyboard.isDown("a") then
+	function Dummy_Walker:update()
+		local random_dir = math.random(1, 500)
+		if random_dir == 1 then
 			self:moveLeft()
-			dir = dir + 1
 		end
-		if love.keyboard.isDown("s") then
+		if random_dir == 2 then
+			self:moveUp()
+		end
+		if random_dir == 3 then
 			self:moveDown()
-			dir = dir + 1
 		end
-		if love.keyboard.isDown("d") then
+		if random_dir == 4 then
 			self:moveRight()
-			dir = dir + 1
 		end
-		if dir > 1 and self.standing then
-			self.locked = false
-		end
-
 
 		self:move()
 
 	end
 
-	return Player
+	return Dummy_Walker
 end
 

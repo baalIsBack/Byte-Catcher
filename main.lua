@@ -13,10 +13,10 @@
 ---]]
 
 -- 1 / Ticks Per Second
-local TICK_RATE = 1 / 100
+TICK_RATE = 1 / 100
 
 -- How many Frames are allowed to be skipped at once due to lag (no "spiral of death")
-local MAX_FRAME_SKIP = 25
+MAX_FRAME_SKIP = 25
 
 -- No configurable framerate cap currently, either max frames CPU can handle (up to 1000), or vsync'd if conf.lua
 
@@ -27,7 +27,6 @@ function love.run()
 	if love.timer then love.timer.step() end
 
 	local lag = 0.0
-
 	-- Main loop time.
 	return function()
 		-- Process events.
@@ -67,6 +66,7 @@ end
 
 --require 'import'
 require 'Dummy'
+require 'Dummy_Walker'
 require 'Player'
 
 WORLD_WIDTH = 100
@@ -75,34 +75,36 @@ TILE_WIDTH = 80
 TILE_HEIGHT = 80
 
 function love.load()
-	player = Player()
-	camera = player
-	camera.x = 0
-	camera.y = 0
+	math.randomseed(os.time())
 
 	world = {}
 	for x = 0, WORLD_WIDTH-1, 1 do
 		world[x] = {}
 		for y = 0, WORLD_HEIGHT-1, 1 do
 			if (x + y) % 2 == 0 then
-				world[x][y] = Dummy()
+				world[x][y] = {Dummy(),}
 			else
-				world[x][y] = Dummy()--nil
+				world[x][y] = {}--nil
+				if math.random(1, 50) == 1 then
+					Dummy_Walker(x, y)
+				end
 			end
 		end
 	end
+
+
+	player = Player(3, 3)
+	--camera = player
 end
 
 
 function love.draw()
+	love.graphics.setBackgroundColor(100/255, 100/255, 100/255)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
 
 
-	love.graphics.setColor(1, 0, 0)
-	player_x = getTileX(camera.x) + 1-- 1
-	player_y = getTileY(camera.y) + 1-- 1
-	love.graphics.circle("fill", TILE_WIDTH/2 - TILE_WIDTH * (-player_x+1), TILE_HEIGHT/2 - TILE_HEIGHT * (-player_y+1), 5, 100)
+	
 
 
 	love.graphics.setColor(1, 1, 1)	
@@ -110,10 +112,24 @@ function love.draw()
 	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
 		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
 			if world[x] ~= nil and world[x][y] ~= nil then
-				world[x][y]:draw(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
-				if world[x][y].dead then
-					world[x][y] = nil
+
+
+				for i=#world[x][y],1,-1 do -- i starts at the end, and goes "down"
+					local currentObject = world[x][y][i]
+					currentObject:draw(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
+					
+					table.remove(world[x][y], i)
+					if not currentObject.dead then
+						if currentObject.x and currentObject.y then
+							--print(getTileX(currentObject.x))
+							table.insert(world[getTileX(currentObject.x)][getTileY(currentObject.y)], currentObject)
+						else
+							table.insert(world[x][y], currentObject)
+						end
+					end
 				end
+
+
 			end
 		end	
 	end
@@ -121,15 +137,38 @@ function love.draw()
 
 
 	love.graphics.pop()
-	love.graphics.setColor(0, 1, 1)
-	love.graphics.circle("line", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 5, 100)
+	--love.graphics.setColor(0, 1, 1)
+	--love.graphics.circle("line", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 5, 100)
 end
 
 
 function love.update(dt)
-	player:update()
+	--player:update()
+
+	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
+		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
+			if world[x] ~= nil and world[x][y] ~= nil then
 
 
+				for i=#world[x][y],1,-1 do -- i starts at the end, and goes "down"
+					local currentObject = world[x][y][i]
+					currentObject:update()--(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
+					
+					table.remove(world[x][y], i)
+					if not currentObject.dead then
+						if currentObject.x and currentObject.y then
+							--print(getTileX(currentObject.x))
+							table.insert(world[getTileX(currentObject.x)][getTileY(currentObject.y)], currentObject)
+						else
+							table.insert(world[x][y], currentObject)
+						end
+					end
+				end
+
+
+			end
+		end	
+	end
 	
 
 	if love.keyboard.isDown('escape') then
@@ -138,9 +177,9 @@ function love.update(dt)
 end
 
 function getTileX(x)
-	return math.floor(x/TILE_WIDTH)
+	return math.floor(x/TILE_WIDTH)+1
 end
 	
 function getTileY(y)
-	return math.floor(y/TILE_HEIGHT)
+	return math.floor(y/TILE_HEIGHT)+1
 end
