@@ -3,7 +3,7 @@ function Player(_x, _y)
 		x = (_x)*TILE_WIDTH - TILE_WIDTH/2,
 		y = (_y)*TILE_HEIGHT - TILE_HEIGHT/2,
 		locked = false,
-
+		solid = true,
 		speed = 2,
 		rememberedPos = 0,
 		standing = true,

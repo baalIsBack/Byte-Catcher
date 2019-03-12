@@ -69,8 +69,8 @@ require 'Dummy'
 require 'Dummy_Walker'
 require 'Player'
 
-WORLD_WIDTH = 100
-WORLD_HEIGHT = 100
+WORLD_WIDTH = 16
+WORLD_HEIGHT = 16
 TILE_WIDTH = 80
 TILE_HEIGHT = 80
 
@@ -116,16 +116,17 @@ function getMouseTileY()
 end
 
 function tileIsLegal(x, y)
-	print(x, WORLD_WIDTH-1)
+	--print(x, WORLD_WIDTH-1)
 	return x >= 0 and x < WORLD_WIDTH-1 and y >= 0 and y < WORLD_HEIGHT-1
 end
 
 
 function love.draw()
-	love.graphics.setBackgroundColor(100/255, 100/255, 100/255)
+	love.graphics.setBackgroundColor(0,0,0)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
-
+	love.graphics.setColor(100/255, 100/255, 100/255)
+	love.graphics.rectangle("fill", -TILE_WIDTH, -TILE_HEIGHT, WORLD_WIDTH * TILE_WIDTH, WORLD_HEIGHT * TILE_HEIGHT)
 	
 	
 
@@ -195,14 +196,14 @@ function love.update(dt)
 	
 	local _x = getMouseTileX()
 	local _y = getMouseTileY()
-	print(tileIsLegal(_x, _y))
-	if love.mouse.isDown(1) and tileIsLegal(_x, _y) then
+	--print(tileIsLegal(_x, _y))
+	--[[if love.mouse.isDown(1) and tileIsLegal(_x, _y) then
 		
 		world[_x][_y] = {}
 		if _x == getTileX(player.x) and _y == getTileY(player.y) then
 			world[_x][_y] = {player,}
 		end
-	end
+	end]]
 
 	if love.keyboard.isDown('escape') then
 		love.event.quit()
