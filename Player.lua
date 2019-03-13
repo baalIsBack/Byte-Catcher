@@ -3,7 +3,7 @@ function Player(_x, _y)
 		x = (_x)*TILE_WIDTH - TILE_WIDTH/2,
 		y = (_y)*TILE_HEIGHT - TILE_HEIGHT/2,
 		locked = false,
-		solid = true,
+		solid = false,
 		speed = 2,
 		rememberedPos = 0,
 		standing = true,
@@ -93,7 +93,7 @@ function Player(_x, _y)
 	end
 
 	function Player:update()
-		local dir = 0
+		--[[local dir = 0
 		if love.keyboard.isDown("w") then
 			self:moveUp()
 			dir = dir + 1
@@ -112,7 +112,7 @@ function Player(_x, _y)
 		end
 		if dir > 1 and self.standing then
 			self.locked = false
-		end
+		end]]
 
 
 		self:move()

@@ -68,6 +68,7 @@ end
 require 'Dummy'
 require 'Dummy_Walker'
 require 'Player'
+require 'Parser'
 
 WORLD_WIDTH = 16
 WORLD_HEIGHT = 16
@@ -93,7 +94,7 @@ function love.load()
 			world[x][y] = {}--nil
 			random = math.random(1, 50)
 			if random == 1 then
-				Dummy_Walker(x, y)
+				--Dummy_Walker(x, y)
 			end
 			if random >= 2 and random < 15 then
 				local dummy = Dummy(x, y)
@@ -120,8 +121,13 @@ function tileIsLegal(x, y)
 	return x >= 0 and x < WORLD_WIDTH-1 and y >= 0 and y < WORLD_HEIGHT-1
 end
 
-
+local code = ""
 function love.draw()
+
+
+
+
+
 	love.graphics.setBackgroundColor(0,0,0)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
@@ -161,13 +167,140 @@ function love.draw()
 
 
 	love.graphics.pop()
+
+
+	love.graphics.setColor(1, 0, 0)
+	love.graphics.print(">" .. code, 0, 0)
 	--love.graphics.setColor(0, 1, 1)
 	--love.graphics.circle("line", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 5, 100)
 end
 
+function love.textinput(t)
+	code = code .. t
+end
 
+
+local function starts_with(str, start)
+	return str:sub(1, #start) == start
+end
+
+local function ends_with(str, ending)
+	return ending == "" or str:sub(-#ending) == ending
+end
+
+function split(source, delimiters)
+	local elements = {}
+	local pattern = '([^'..delimiters..']+)'
+	source:gsub(pattern, function(value) elements[#elements + 1] =     value;  end);
+	return elements
+end
+
+bind_list = {}
+PARAM_SPECIFIER_CHARACTER = " "
+function interpret(str)
+	str = str:lower()
+	str = str:gsub("\t", " ")
+	str = str:gsub("%s+", " ")
+	str = str:gsub("\n", "")
+	str = str:gsub("\r", "")
+	print(">" .. str)
+
+	--[[if str:match('^help:.-') == 'help:' then
+		local helpList = require 'help_list'
+		for i, entry in ipairs(helpList) do
+			print(entry)
+		end
+	end]]
+
+
+
+	local substr = split(str, PARAM_SPECIFIER_CHARACTER)
+	if substr[1] == nil then
+		return true 
+	end
+
+	if substr[1] == "reset" then
+		bind_list = {}
+	end
+
+	local newStr = ""
+	for i = 1, #substr, 1 do
+		for input, output in pairs(bind_list) do
+			if substr[i] == input then
+				print("'" .. substr[i] .. "' ~> '" .. output .. "'")
+				substr[i] = output
+			end
+		end
+		newStr = newStr .. substr[i] .. PARAM_SPECIFIER_CHARACTER
+	end
+	newStr = newStr:sub(1, newStr:len()-1)
+	print("~> " .. newStr)
+	str = newStr
+
+	print("substr = " .. substr[1])
+	if substr[1] == "help" then
+		local helpList = require 'help_list'
+		for i, entry in ipairs(helpList) do
+			print("-" .. entry)
+		end
+		for input, bind in pairs(bind_list) do
+			print("~" .. input)
+		end
+	elseif substr[1] == "left" then
+		player:moveLeft()
+	elseif substr[1] == "right" then
+		player:moveRight()
+	elseif substr[1] == "up" then
+		player:moveUp()
+	elseif substr[1] == "down" then
+		player:moveDown()
+	elseif substr[1] == "bind" then
+		if faulty_string(substr[1]) or faulty_string(substr[2]) then
+			return false
+		end
+		--print(str:sub((substr[1] .. ":" .. substr[2] .. ":"):len()+1, str:len()))
+		bind_list[ substr[2] ] = str:sub((substr[1] .. PARAM_SPECIFIER_CHARACTER .. substr[2] .. PARAM_SPECIFIER_CHARACTER):len()+1, str:len())
+		print("'" .. substr[2] .. "' <- '" .. str:sub((substr[1] .. PARAM_SPECIFIER_CHARACTER .. substr[2] .. PARAM_SPECIFIER_CHARACTER):len()+1, str:len()) .. "'")
+	else
+
+	end
+	return true
+end
+
+function faulty_string(str)
+	return str == nil or str:len() == 0
+end
+
+
+backspace_down = false
+backspace_down_counter = 0
+insert_down = false
 function love.update(dt)
 	--player:update()
+	if love.keyboard.isDown("backspace") then
+		backspace_down_counter = backspace_down_counter + dt
+		if not backspace_down or backspace_down_counter > 0.5 then
+			if code:len() > 0 then
+				code = code:sub(1, code:len()-1);
+			end
+		end
+		backspace_down = true
+	else
+		backspace_down_counter = 0
+		backspace_down = false
+	end
+	if love.keyboard.isDown("insert") then
+		if not insert_down then
+			code = code .. love.system.getClipboardText( )
+		end
+		insert_down = true
+	else
+		insert_down = false
+	end
+	if love.keyboard.isDown("return") then
+		interpret(code)
+		code = ""
+	end
 
 	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
 		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
