@@ -65,15 +65,45 @@ end
 
 
 --require 'import'
-require 'Dummy'
+require 'Wall'
 require 'Dummy_Walker'
 require 'Player'
+require 'Interactable'
+require 'Background'
+
 require 'Parser'
 
 WORLD_WIDTH = 16
 WORLD_HEIGHT = 16
+CHUNK_WIDTH = 16
+CHUNK_HEIGHT = 16
 TILE_WIDTH = 80
 TILE_HEIGHT = 80
+
+function random_hex(length)
+	local result = ""
+	for i = 1, length, 1 do
+		local n = math.random(0, 15)
+		if n < 10 then
+			result = result .. n
+		else
+			if 	n == 10 then
+				result = result .. 'a'
+			elseif 	n == 11 then
+				result = result .. 'b'
+			elseif 	n == 12 then
+				result = result .. 'c'
+			elseif 	n == 13 then
+				result = result .. 'd'
+			elseif 	n == 14 then
+				result = result .. 'e'
+			elseif 	n == 15 then
+				result = result .. 'f'
+			end
+		end
+	end
+	return result
+end
 
 function isFree(x, y)
 	for i=#world[x][y],1,-1 do
@@ -87,25 +117,42 @@ end
 function love.load()
 	math.randomseed(os.time())
 
+	font = love.graphics.newFont("font_joystix.ttf")
+	print(font:getWidth("a"), font:getHeight())
+	love.graphics.setFont(font)
+
+
 	world = {}
-	for x = 0, WORLD_WIDTH-1, 1 do
-		world[x] = {}
+	--[[for x = 0, WORLD_WIDTH-1, 1 do
 		for y = 0, WORLD_HEIGHT-1, 1 do
-			world[x][y] = {}--nil
-			random = math.random(1, 50)
-			if random == 1 then
-				--Dummy_Walker(x, y)
-			end
-			if random >= 2 and random < 15 then
-				local dummy = Dummy(x, y)
-				dummy.solid = true
-			end
+			generate(x, y)
+			
+		end
+	end]]
+	generate_chunk(math.floor(CHUNK_WIDTH/2), math.floor(CHUNK_HEIGHT/2))
+
+
+	player = Player(math.floor(CHUNK_WIDTH/2), math.floor(CHUNK_HEIGHT/2))
+	--camera = player
+end
+
+
+function doProperty(x, y, property_string, action_string, ...)
+	if not tileIsLegal(x, y) then return end
+	for i, entry in ipairs(world[x][y]) do
+		if entry[property_string] then
+			return entry[action_string](entry, ...)
 		end
 	end
+end
 
-
-	player = Player(3, 3)
-	--camera = player
+function doOnProperty(x, y, property_string, action, ...)
+	if not tileIsLegal(x, y) then return end
+	for i, entry in ipairs(world[x][y]) do
+		if entry[property_string] then
+			return action(entry, ...)
+		end
+	end
 end
 
 function getMouseTileX()
@@ -118,7 +165,8 @@ end
 
 function tileIsLegal(x, y)
 	--print(x, WORLD_WIDTH-1)
-	return x >= 0 and x < WORLD_WIDTH-1 and y >= 0 and y < WORLD_HEIGHT-1
+	return world[x] ~= nil and world[x][y] ~= nil
+	--return x >= 0 and x < WORLD_WIDTH and y >= 0 and y < WORLD_HEIGHT
 end
 
 local code = ""
@@ -131,8 +179,13 @@ function love.draw()
 	love.graphics.setBackgroundColor(0,0,0)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
-	love.graphics.setColor(100/255, 100/255, 100/255)
-	love.graphics.rectangle("fill", -TILE_WIDTH, -TILE_HEIGHT, WORLD_WIDTH * TILE_WIDTH, WORLD_HEIGHT * TILE_HEIGHT)
+
+
+	
+
+
+	--love.graphics.setColor(100/255, 100/255, 100/255)
+	--love.graphics.rectangle("fill", -TILE_WIDTH, -TILE_HEIGHT, WORLD_WIDTH * TILE_WIDTH, WORLD_HEIGHT * TILE_HEIGHT)
 	
 	
 
@@ -141,29 +194,19 @@ function love.draw()
 
 	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
 		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
-			if world[x] ~= nil and world[x][y] ~= nil then
+			if tileIsLegal(x, y) then
 
 
 				for i=#world[x][y],1,-1 do -- i starts at the end, and goes "down"
 					local currentObject = world[x][y][i]
 					currentObject:draw(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
-					
-					table.remove(world[x][y], i)
-					if not currentObject.dead then
-						if currentObject.x and currentObject.y then
-							--print(getTileX(currentObject.x))
-							table.insert(world[getTileX(currentObject.x)][getTileY(currentObject.y)], currentObject)
-						else
-							table.insert(world[x][y], currentObject)
-						end
-					end
 				end
 
 
 			end
 		end	
 	end
-
+	player:draw(TILE_WIDTH * getTileX(player.x) - TILE_WIDTH/2, TILE_HEIGHT * getTileY(player.y) - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
 
 
 	love.graphics.pop()
@@ -175,8 +218,10 @@ function love.draw()
 	--love.graphics.circle("line", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 5, 100)
 end
 
+
+
 function love.textinput(t)
-	code = code .. t
+	--code = code .. t
 end
 
 
@@ -204,7 +249,7 @@ function interpret(str)
 	str = str:gsub("\n", "")
 	str = str:gsub("\r", "")
 	print(">" .. str)
-
+	print(str:match('%(.-%)'))
 	--[[if str:match('^help:.-') == 'help:' then
 		local helpList = require 'help_list'
 		for i, entry in ipairs(helpList) do
@@ -214,7 +259,7 @@ function interpret(str)
 
 
 
-	local substr = split(str, PARAM_SPECIFIER_CHARACTER)
+	--[[local substr = split(str, PARAM_SPECIFIER_CHARACTER)
 	if substr[1] == nil then
 		return true 
 	end
@@ -263,7 +308,7 @@ function interpret(str)
 		print("'" .. substr[2] .. "' <- '" .. str:sub((substr[1] .. PARAM_SPECIFIER_CHARACTER .. substr[2] .. PARAM_SPECIFIER_CHARACTER):len()+1, str:len()) .. "'")
 	else
 
-	end
+	end]]
 	return true
 end
 
@@ -272,10 +317,84 @@ function faulty_string(str)
 end
 
 
+
+
+
+local generated = 0
+function generate(x, y)
+	if world[x] == nil then
+		world[x] = {}
+	end
+	if world[x][y] == nil then
+		generated = generated + 1
+		--print("Tile number #" .. generated .. " is located on x:" .. x .. " y:" .. y)
+		world[x][y] = {}
+		random = math.random(1, 50)
+		if random == 1 then
+			--Dummy_Walker(x, y)
+			Wall(x, y)
+		elseif random >= 2 and random < 15 then
+			Wall(x, y)
+		elseif random == 15 then
+			Background(x, y)
+			--[[Interactable(x, y, function(self)
+				print("Goodbye!")
+				self.dead = true
+			end)]]
+		else
+			Background(x, y)
+		end
+		if x%300 > 200 and x%300 <= 205 and y%300 > 200 and y%300 <= 205 then
+			world[x][y] = {}
+			if x % 300 == 203 and y % 300 == 203 then
+				Interactable(x, y, function(self)
+					print("Goodbye!")
+					self.interactable = false
+					self.dead = true
+				end)
+			else
+				Background(x, y)
+			end
+		end
+	end
+end
+
+function generate_chunk(x, y)
+	local rand = math.random(1, 100)
+	if rand%2 == 0 then
+		for _x = math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH, math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH + CHUNK_WIDTH -1, 1 do
+			for _y = math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT, math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT + CHUNK_HEIGHT -1, 1 do
+				if world[_x] == nil then
+					world[_x] = {}
+				end
+				if world[_x][_y] == nil then
+					world[_x][_y] = {}
+				end
+				if _x % 3 == 0 and _y % 3 == 0 then
+					Interactable(_x, _y, function(self)
+						print("Goodbye!")
+						self.interactable = false
+						self.dead = true
+					end)
+				else
+					Background(_x, _y)		
+				end
+			end
+		end
+	else
+		for _x = math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH, math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH + CHUNK_WIDTH -1, 1 do
+			for _y = math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT, math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT + CHUNK_HEIGHT -1, 1 do
+				generate(_x, _y)		
+			end
+		end
+	end
+end
+
 backspace_down = false
 backspace_down_counter = 0
 insert_down = false
 function love.update(dt)
+
 	--player:update()
 	if love.keyboard.isDown("backspace") then
 		backspace_down_counter = backspace_down_counter + dt
@@ -304,12 +423,12 @@ function love.update(dt)
 
 	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
 		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
-			if world[x] ~= nil and world[x][y] ~= nil then
+			if tileIsLegal(x, y) then
 
 
 				for i=#world[x][y],1,-1 do -- i starts at the end, and goes "down"
 					local currentObject = world[x][y][i]
-					currentObject:update()--(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
+					currentObject:update(dt)--(TILE_WIDTH * x - TILE_WIDTH/2, TILE_HEIGHT * y - TILE_HEIGHT/2, TILE_WIDTH, TILE_HEIGHT)
 						
 					table.remove(world[x][y], i)
 					if not currentObject.dead then
@@ -319,10 +438,12 @@ function love.update(dt)
 						else
 							table.insert(world[x][y], currentObject)
 						end
+					else
+						Background(x, y)
 					end
 				end
-
-
+			else
+				generate_chunk(x, y)
 			end
 		end	
 	end
