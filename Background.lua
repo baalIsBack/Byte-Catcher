@@ -8,14 +8,7 @@ function Background(_x, _y)
 
 	
 
-	function Background:initText()
-		Background.text = {}
-		Background.text[1] = random_hex(8)
-		Background.text[2] = random_hex(8)
-		Background.text[3] = random_hex(8)
-		Background.text[4] = random_hex(8)
-		Background.text[5] = random_hex(8)
-	end
+	Background.initText = Object_initText
 	Background:initText()
 
 	function Background:draw(x, y, w, h)
@@ -40,4 +33,3 @@ function Background(_x, _y)
 	end
 	return Background
 end
-

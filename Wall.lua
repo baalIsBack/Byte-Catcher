@@ -8,14 +8,7 @@ function Wall(_x, _y)
 
 	
 
-	function Wall:initText()
-		Wall.text = {}
-		Wall.text[1] = random_hex(8)
-		Wall.text[2] = random_hex(8)
-		Wall.text[3] = random_hex(8)
-		Wall.text[4] = random_hex(8)
-		Wall.text[5] = random_hex(8)
-	end
+	Wall.initText = Object_initText
 	Wall:initText()
 
 	function Wall:draw(x, y, w, h)
@@ -40,4 +33,3 @@ function Wall(_x, _y)
 	end
 	return Wall
 end
-

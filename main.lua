@@ -64,14 +64,8 @@ function love.run()
 end
 
 
---require 'import'
-require 'Wall'
-require 'Dummy_Walker'
-require 'Player'
-require 'Interactable'
-require 'Background'
+require 'import'
 
-require 'Parser'
 
 WORLD_WIDTH = 16
 WORLD_HEIGHT = 16
@@ -80,30 +74,6 @@ CHUNK_HEIGHT = 16
 TILE_WIDTH = 80
 TILE_HEIGHT = 80
 
-function random_hex(length)
-	local result = ""
-	for i = 1, length, 1 do
-		local n = math.random(0, 15)
-		if n < 10 then
-			result = result .. n
-		else
-			if 	n == 10 then
-				result = result .. 'a'
-			elseif 	n == 11 then
-				result = result .. 'b'
-			elseif 	n == 12 then
-				result = result .. 'c'
-			elseif 	n == 13 then
-				result = result .. 'd'
-			elseif 	n == 14 then
-				result = result .. 'e'
-			elseif 	n == 15 then
-				result = result .. 'f'
-			end
-		end
-	end
-	return result
-end
 
 function isFree(x, y)
 	for i=#world[x][y],1,-1 do
@@ -169,14 +139,7 @@ function tileIsLegal(x, y)
 	--return x >= 0 and x < WORLD_WIDTH and y >= 0 and y < WORLD_HEIGHT
 end
 
-local code = ""
 function love.draw()
-
-
-
-
-
-	love.graphics.setBackgroundColor(0,0,0)
 	love.graphics.push()
 	love.graphics.translate(-camera.x + love.graphics.getWidth()/2, -camera.y + love.graphics.getHeight()/2)
 
@@ -210,113 +173,7 @@ function love.draw()
 
 
 	love.graphics.pop()
-
-
-	love.graphics.setColor(1, 0, 0)
-	love.graphics.print(">" .. code, 0, 0)
-	--love.graphics.setColor(0, 1, 1)
-	--love.graphics.circle("line", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 5, 100)
 end
-
-
-
-function love.textinput(t)
-	--code = code .. t
-end
-
-
-local function starts_with(str, start)
-	return str:sub(1, #start) == start
-end
-
-local function ends_with(str, ending)
-	return ending == "" or str:sub(-#ending) == ending
-end
-
-function split(source, delimiters)
-	local elements = {}
-	local pattern = '([^'..delimiters..']+)'
-	source:gsub(pattern, function(value) elements[#elements + 1] =     value;  end);
-	return elements
-end
-
-bind_list = {}
-PARAM_SPECIFIER_CHARACTER = " "
-function interpret(str)
-	str = str:lower()
-	str = str:gsub("\t", " ")
-	str = str:gsub("%s+", " ")
-	str = str:gsub("\n", "")
-	str = str:gsub("\r", "")
-	print(">" .. str)
-	print(str:match('%(.-%)'))
-	--[[if str:match('^help:.-') == 'help:' then
-		local helpList = require 'help_list'
-		for i, entry in ipairs(helpList) do
-			print(entry)
-		end
-	end]]
-
-
-
-	--[[local substr = split(str, PARAM_SPECIFIER_CHARACTER)
-	if substr[1] == nil then
-		return true 
-	end
-
-	if substr[1] == "reset" then
-		bind_list = {}
-	end
-
-	local newStr = ""
-	for i = 1, #substr, 1 do
-		for input, output in pairs(bind_list) do
-			if substr[i] == input then
-				print("'" .. substr[i] .. "' ~> '" .. output .. "'")
-				substr[i] = output
-			end
-		end
-		newStr = newStr .. substr[i] .. PARAM_SPECIFIER_CHARACTER
-	end
-	newStr = newStr:sub(1, newStr:len()-1)
-	print("~> " .. newStr)
-	str = newStr
-
-	print("substr = " .. substr[1])
-	if substr[1] == "help" then
-		local helpList = require 'help_list'
-		for i, entry in ipairs(helpList) do
-			print("-" .. entry)
-		end
-		for input, bind in pairs(bind_list) do
-			print("~" .. input)
-		end
-	elseif substr[1] == "left" then
-		player:moveLeft()
-	elseif substr[1] == "right" then
-		player:moveRight()
-	elseif substr[1] == "up" then
-		player:moveUp()
-	elseif substr[1] == "down" then
-		player:moveDown()
-	elseif substr[1] == "bind" then
-		if faulty_string(substr[1]) or faulty_string(substr[2]) then
-			return false
-		end
-		--print(str:sub((substr[1] .. ":" .. substr[2] .. ":"):len()+1, str:len()))
-		bind_list[ substr[2] ] = str:sub((substr[1] .. PARAM_SPECIFIER_CHARACTER .. substr[2] .. PARAM_SPECIFIER_CHARACTER):len()+1, str:len())
-		print("'" .. substr[2] .. "' <- '" .. str:sub((substr[1] .. PARAM_SPECIFIER_CHARACTER .. substr[2] .. PARAM_SPECIFIER_CHARACTER):len()+1, str:len()) .. "'")
-	else
-
-	end]]
-	return true
-end
-
-function faulty_string(str)
-	return str == nil or str:len() == 0
-end
-
-
 
 
 
@@ -390,36 +247,9 @@ function generate_chunk(x, y)
 	end
 end
 
-backspace_down = false
-backspace_down_counter = 0
-insert_down = false
 function love.update(dt)
 
 	--player:update()
-	if love.keyboard.isDown("backspace") then
-		backspace_down_counter = backspace_down_counter + dt
-		if not backspace_down or backspace_down_counter > 0.5 then
-			if code:len() > 0 then
-				code = code:sub(1, code:len()-1);
-			end
-		end
-		backspace_down = true
-	else
-		backspace_down_counter = 0
-		backspace_down = false
-	end
-	if love.keyboard.isDown("insert") then
-		if not insert_down then
-			code = code .. love.system.getClipboardText( )
-		end
-		insert_down = true
-	else
-		insert_down = false
-	end
-	if love.keyboard.isDown("return") then
-		interpret(code)
-		code = ""
-	end
 
 	for x = getTileX(camera.x - (love.graphics.getWidth()/2))-1, getTileX(camera.x + (love.graphics.getWidth()/2))+1, 1 do
 		for y = getTileY(camera.y - (love.graphics.getHeight()/2))-1, getTileY(camera.y + (love.graphics.getHeight()/2))+1, 1 do
@@ -447,17 +277,6 @@ function love.update(dt)
 			end
 		end	
 	end
-	
-	local _x = getMouseTileX()
-	local _y = getMouseTileY()
-	--print(tileIsLegal(_x, _y))
-	--[[if love.mouse.isDown(1) and tileIsLegal(_x, _y) then
-		
-		world[_x][_y] = {}
-		if _x == getTileX(player.x) and _y == getTileY(player.y) then
-			world[_x][_y] = {player,}
-		end
-	end]]
 
 	if love.keyboard.isDown('escape') then
 		love.event.quit()

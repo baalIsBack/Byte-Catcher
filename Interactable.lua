@@ -6,14 +6,7 @@ function Interactable(_x, _y, _interaction)
 
 
 	table.insert(world[_x][_y], Interactable)--hook into world
-	function Interactable:initText()
-		Interactable.text = {}
-		Interactable.text[1] = random_hex(8)
-		Interactable.text[2] = random_hex(8)
-		Interactable.text[3] = random_hex(8)
-		Interactable.text[4] = random_hex(8)
-		Interactable.text[5] = random_hex(8)
-	end
+	Interactable.initText = Object_initText
 	Interactable:initText()
 
 	function Interactable:draw(x, y, w, h)
@@ -49,4 +42,3 @@ function Interactable(_x, _y, _interaction)
 
 	return Interactable
 end
-
