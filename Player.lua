@@ -9,6 +9,7 @@ function Player(_x, _y)
 		rememberedPos = 0,
 		standing = true,
 		locked = false,
+		energy = 50,
 		direction = 0,--WIP draw rotation on graphics 0 means right and 0.5 means up
 	}
 	table.insert(world[_x][_y], Player)--hook into world
@@ -25,9 +26,10 @@ function Player(_x, _y)
 	function Player:moveUp()
 		self.direction = 0.5
 		if self.standing then
-			if not self.locked and not doOnProperty(getTileX(self.x), getTileY(self.y)-1, "solid", function() return true end) then
+			if self.energy > 0 and not self.locked and not doOnProperty(getTileX(self.x), getTileY(self.y)-1, "solid", function() return true end) then
 				self.locked = "up"
 				self.rememberedPos = self.y - TILE_HEIGHT
+				self.energy = self.energy - 1
 			end
 		end
 	end
@@ -35,9 +37,10 @@ function Player(_x, _y)
 	function Player:moveDown()
 		self.direction = 1.5
 		if self.standing then
-			if not self.locked and not doOnProperty(getTileX(self.x), getTileY(self.y)+1, "solid", function() return true end) then
+			if self.energy > 0 and not self.locked and not doOnProperty(getTileX(self.x), getTileY(self.y)+1, "solid", function() return true end) then
 				self.locked = "down"
 				self.rememberedPos = self.y + TILE_HEIGHT
+				self.energy = self.energy - 1
 			end
 		end
 	end
@@ -45,9 +48,10 @@ function Player(_x, _y)
 	function Player:moveLeft()
 		self.direction = 1.0
 		if self.standing then
-			if not self.locked and not doOnProperty(getTileX(self.x)-1, getTileY(self.y), "solid", function() return true end) then
+			if self.energy > 0 and not self.locked and not doOnProperty(getTileX(self.x)-1, getTileY(self.y), "solid", function() return true end) then
 				self.locked = "left"
 				self.rememberedPos = self.x - TILE_WIDTH
+				self.energy = self.energy - 1
 			end
 		end
 	end
@@ -55,9 +59,10 @@ function Player(_x, _y)
 	function Player:moveRight()
 		self.direction = 0.0
 		if self.standing then
-			if not self.locked and not doOnProperty(getTileX(self.x)+1, getTileY(self.y), "solid", function() return true end) then--isFree(getTileX(self.x)+1, getTileY(self.y)) then
+			if self.energy > 0 and not self.locked and not doOnProperty(getTileX(self.x)+1, getTileY(self.y), "solid", function() return true end) then--isFree(getTileX(self.x)+1, getTileY(self.y)) then
 				self.locked = "right"
 				self.rememberedPos = self.x + TILE_WIDTH
+				self.energy = self.energy - 1
 			end
 		end
 	end
@@ -150,7 +155,9 @@ function Player(_x, _y)
 		end
 		if love.keyboard.isDown("e") then
 			self:interact()
-
+		end
+		if love.keyboard.isDown("c") then
+			print(self.energy)
 		end
 
 

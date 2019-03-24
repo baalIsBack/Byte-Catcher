@@ -28,7 +28,7 @@ function Wall(_x, _y)
 		Wall.counter = Wall.counter + dt
 		if Wall.counter > 0.2 then
 			Wall.counter = 0
-			Wall:initText()
+			--Wall:initText()
 		end
 	end
 	return Wall

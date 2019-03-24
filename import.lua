@@ -6,3 +6,5 @@ require 'Player'
 require 'Interactable'
 require 'Background'
 require 'Parser'
+
+require 'maps/map1'

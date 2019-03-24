@@ -106,7 +106,6 @@ function love.load()
 	--camera = player
 end
 
-
 function doProperty(x, y, property_string, action_string, ...)
 	if not tileIsLegal(x, y) then return end
 	for i, entry in ipairs(world[x][y]) do
@@ -177,73 +176,82 @@ end
 
 
 
-local generated = 0
-function generate(x, y)
-	if world[x] == nil then
-		world[x] = {}
-	end
-	if world[x][y] == nil then
-		generated = generated + 1
-		--print("Tile number #" .. generated .. " is located on x:" .. x .. " y:" .. y)
-		world[x][y] = {}
-		random = math.random(1, 50)
-		if random == 1 then
-			--Dummy_Walker(x, y)
-			Wall(x, y)
-		elseif random >= 2 and random < 15 then
-			Wall(x, y)
-		elseif random == 15 then
-			Background(x, y)
-			--[[Interactable(x, y, function(self)
-				print("Goodbye!")
-				self.dead = true
-			end)]]
-		else
-			Background(x, y)
-		end
-		if x%300 > 200 and x%300 <= 205 and y%300 > 200 and y%300 <= 205 then
-			world[x][y] = {}
-			if x % 300 == 203 and y % 300 == 203 then
-				Interactable(x, y, function(self)
-					print("Goodbye!")
-					self.interactable = false
-					self.dead = true
-				end)
-			else
-				Background(x, y)
-			end
-		end
-	end
-end
+
 
 function generate_chunk(x, y)
 	local rand = math.random(1, 100)
-	if rand%2 == 0 then
-		for _x = math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH, math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH + CHUNK_WIDTH -1, 1 do
-			for _y = math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT, math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT + CHUNK_HEIGHT -1, 1 do
-				if world[_x] == nil then
-					world[_x] = {}
+	--rand = 100
+	for _x = math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH, math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH + CHUNK_WIDTH -1, 1 do
+		for _y = math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT, math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT + CHUNK_HEIGHT -1, 1 do
+			if world[_x] == nil then
+				world[_x] = {}
+			end
+			if world[_x][_y] == nil then
+				world[_x][_y] = {}
+			end
+			if rand == 100 then
+				maps_map1(_x, _y)
+			elseif rand%3 == 0 then
+				local r = math.random(1, 100)
+				if r < 30 then
+					Wall(_x, _y)
+				else
+					local rand = math.random(1, 100)
+					if rand%30 == 1 then
+						Interactable(_x, _y, function(self)
+							self.interactable = false
+							self.dead = true
+							player.energy = player.energy + 16
+						end)
+					else
+						Background(_x, _y)
+					end
 				end
-				if world[_x][_y] == nil then
-					world[_x][_y] = {}
-				end
-				if _x % 3 == 0 and _y % 3 == 0 then
+				--[[if _x % 3 == 0 and _y % 3 == 0 then
 					Interactable(_x, _y, function(self)
 						print("Goodbye!")
 						self.interactable = false
 						self.dead = true
 					end)
 				else
-					Background(_x, _y)		
+					Background(_x, _y)	
+				end]]
+			elseif rand %3 == 1 then
+				local r = math.random(1, 100)
+				if r < 40 then
+					Wall(_x, _y)
+				else
+					local rand = math.random(1, 100)
+					if rand%30 == 1 then
+						Interactable(_x, _y, function(self)
+							self.interactable = false
+							self.dead = true
+							player.energy = player.energy + 16
+						end)
+					else
+						Background(_x, _y)
+					end
 				end
+			elseif rand %3 == 2 then
+				local r = math.random(1, 100)
+				if r < 50 then
+					Wall(_x, _y)
+				else
+					local rand = math.random(1, 100)
+					if rand%30 == 1 then
+						Interactable(_x, _y, function(self)
+							self.interactable = false
+							self.dead = true
+							player.energy = player.energy + 16
+						end)
+					else
+						Background(_x, _y)
+					end
+				end
+			else
+				Wall(_x, _y)
 			end
-		end
-	else
-		for _x = math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH, math.floor(x/CHUNK_WIDTH)*CHUNK_WIDTH + CHUNK_WIDTH -1, 1 do
-			for _y = math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT, math.floor(y/CHUNK_HEIGHT)*CHUNK_HEIGHT + CHUNK_HEIGHT -1, 1 do
-				generate(_x, _y)		
-			end
-		end
+		end	
 	end
 end
 

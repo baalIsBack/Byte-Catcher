@@ -10,6 +10,10 @@ function Background(_x, _y)
 
 	Background.initText = Object_initText
 	Background:initText()
+	for i = 1, 5, 1 do
+		Background.text[i] = "00000000"
+
+	end
 
 	function Background:draw(x, y, w, h)
 		love.graphics.setColor(1, 1, 1)
@@ -23,13 +27,13 @@ function Background(_x, _y)
 		end
 	end
 
-	Background.counter = 0
+	--Background.counter = 0
 	function Background:update(dt)
-		Background.counter = Background.counter + dt
+		--[[Background.counter = Background.counter + dt
 		if Background.counter > 0.2 then
 			Background.counter = 0
 			Background:initText()
-		end
+		end]]
 	end
 	return Background
 end

@@ -26,7 +26,7 @@ function Interactable(_x, _y, _interaction)
 		Interactable.counter = Interactable.counter + dt
 		if Interactable.counter > 0.2 then
 			Interactable.counter = 0
-			Interactable:initText()
+			--Interactable:initText()
 		end
 	end
 
